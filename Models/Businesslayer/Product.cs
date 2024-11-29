@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace PatatZaak.Models.Businesslayer
 {
@@ -9,6 +10,12 @@ namespace PatatZaak.Models.Businesslayer
 
         [Required]
         public string? ProductName { get; set; }
+
+        [Required]
+        public string? ProductCat {  get; set; }
+
+        [Required]
+        public string? ProductDescription { get; set; }
 
         [Required]
         public int OrderId { get; set; }
