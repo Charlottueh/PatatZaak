@@ -10,6 +10,14 @@ namespace PatatZaak.Models.Businesslayer
         [Required]
         public int Ordernumber { get; set; }
 
-        ICollection<Product>? Products { get; set; }
+        public int OrderStatus { get; set; }
+
+        public ICollection<Product>? Products { get; set; }
+
+        [Required]
+        public User? OrderUser { get; set; }
+
+        [Required]
+        public int UserId { get; set; }
     }
 }
