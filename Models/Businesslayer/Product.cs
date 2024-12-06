@@ -17,6 +17,10 @@ namespace PatatZaak.Models.Businesslayer
         [Required]
         public string? ProductDescription { get; set; }
 
+        public bool? ProductDiscount { get; set; }
+
+        public string? Photopath { get; set; }
+
         [Required]
         public int OrderId { get; set; }
         public Order? Order { get; set; }   
