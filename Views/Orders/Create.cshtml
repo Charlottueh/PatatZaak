@@ -1,40 +1,44 @@
 ﻿@model PatatZaak.Models.Businesslayer.Order
+using System.ComponentModel.DataAnnotations;
+
 
 @{
     ViewData["Title"] = "Create";
 }
 
-<h1>Create</h1>
-
-<h4>Order</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Ordernumber" class="control-label"></label>
-                <input asp-for="Ordernumber" class="form-control" />
-                <span asp-validation-for="Ordernumber" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="OrderStatus" class="control-label"></label>
-                <input asp-for="OrderStatus" class="form-control" />
-                <span asp-validation-for="OrderStatus" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class ="form-control" asp-items="ViewBag.UserId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="master-container">
+    <div class="card cart">
+        <label class="title">Your cart</label>
+        <div class="products">
+            @foreach (var product in Model.Products)
+            {
+                <div class="product">
+                    <svg><!-- SVG voor afbeelding --></svg>
+                    <div>
+                        <span>@product.ProductName</span>
+                        <p>@product.ProductDescription</p>
+                        <p>Price: @product.ProductPrice</p>
+                    </div>
+                    <div class="quantity">
+                        <button asp-action="UpdateProductQuantity" asp-route-orderId="@Model.OrderId" asp-route-productId="@product.ProductId" asp-route-quantity="-1">-</button>
+                        <label>@product.ProductQuantity</label>
+                        <button asp-action="UpdateProductQuantity" asp-route-orderId="@Model.OrderId" asp-route-productId="@product.ProductId" asp-route-quantity="1">+</button>
+                    </div>
+                    <label class="price small">@product.ProductPrice * @product.ProductQuantity</label>
+                </div>
+            }
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    <div class="card checkout">
+        <label class="title">Checkout</label>
+        <div class="details">
+            <span>Your cart subtotal:</span>
+            <span>@Model.TotalPrice.ToString("C")</span>
+        </div>
+        <div class="checkout--footer">
+            <button class="checkout-btn" asp-action="Checkout" asp-route-id="@Model.OrderId">Checkout</button>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

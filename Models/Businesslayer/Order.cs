@@ -19,5 +19,10 @@ namespace PatatZaak.Models.Businesslayer
 
         [Required]
         public int UserId { get; set; }
+
+        public decimal TotalPrice
+        {
+            get => Products?.Sum(p => p.ProductPrice * p.ProductQuantity) ?? 0;
+        }
     }
 }

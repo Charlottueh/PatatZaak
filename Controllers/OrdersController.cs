@@ -57,16 +57,45 @@ namespace PatatZaak.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OrderId,Ordernumber,OrderStatus,UserId")] Order order)
+        public IActionResult AddProductToOrder(int orderId, int productId, int quantity)
         {
-            if (ModelState.IsValid)
+            if (quantity <= 0) return BadRequest("Quantity must be greater than zero.");
+
+            var order = _context.Order.Include(o => o.Products).FirstOrDefault(o => o.OrderId == orderId);
+            if (order == null) return NotFound();
+
+            var product = _context.Product.Find(productId);
+            if (product == null) return NotFound();
+
+            var existingProduct = order.Products.FirstOrDefault(p => p.ProductId == productId);
+
+            if (existingProduct != null)
             {
-                _context.Add(order);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                existingProduct.ProductQuantity += quantity;
+
+                if (existingProduct.ProductQuantity <= 0)
+                {
+                    // Als de hoeveelheid nul of negatief wordt, verwijder het product
+                    order.Products.Remove(existingProduct);
+                }
             }
-            ViewData["UserId"] = new SelectList(_context.User, "UserId", "Password", order.UserId);
-            return View(order);
+            else
+            {
+                if (quantity > 0)
+                {
+                    order.Products.Add(new Product
+                    {
+                        ProductId = productId,
+                        ProductQuantity = quantity,
+                        ProductPrice = product.ProductPrice,
+                        ProductName = product.ProductName,
+                        ProductDescription = product.ProductDescription
+                    });
+                }
+            }
+
+            _context.SaveChanges();
+            return RedirectToAction("Edit", new { id = orderId });
         }
 
         // GET: Orders/Edit/5
