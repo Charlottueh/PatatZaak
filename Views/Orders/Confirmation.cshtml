@@ -1,0 +1,20 @@
+﻿@model PatatZaak.Models.Viewmodels
+
+<h2>Order Bevestiging</h2>
+<p>Bedankt voor uw bestelling!</p>
+<p><strong>Ordernummer:</strong> @Model.OrderNumber</p>
+<p><strong>Ophaalnummer:</strong> @Model.PickupNumber</p>
+<p><strong>Ophaaltijd:</strong> @Model.PickupTime</p>
+<p><strong>Totaalprijs:</strong> @Model.TotalPrice €</p>
+
+<h3>Bestelde Producten:</h3>
+<ul>
+    @foreach (var product in Model.Products)
+
+    {
+        <li>@product.ProductName - @product.ProductQuantity x €@product.ProductPrice</li>
+    }
+</ul>
+
+<button onclick="window.print()">Print Bon</button>
+<a href="/">Terug naar de homepage</a>
