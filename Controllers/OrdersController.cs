@@ -53,8 +53,21 @@ namespace PatatZaak.Controllers
         }
 
         // POST: Orders/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("OrderId,Ordernumber,OrderStatus,UserId,PickupTime,PickupNumber")] Order order)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(order);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            ViewData["UserId"] = new SelectList(_context.User, "UserId", "Password", order.UserId);
+            return View(order);
+        }
+
+        // POST: Orders/AddProductToOrder
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AddProductToOrder(int orderId, int productId, int quantity)
@@ -75,7 +88,7 @@ namespace PatatZaak.Controllers
 
                 if (existingProduct.ProductQuantity <= 0)
                 {
-                    // Als de hoeveelheid nul of negatief wordt, verwijder het product
+                    // Verwijder product als de hoeveelheid 0 of negatief is
                     order.Products.Remove(existingProduct);
                 }
             }
@@ -116,11 +129,9 @@ namespace PatatZaak.Controllers
         }
 
         // POST: Orders/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OrderId,Ordernumber,OrderStatus,UserId")] Order order)
+        public async Task<IActionResult> Edit(int id, [Bind("OrderId,Ordernumber,OrderStatus,UserId,PickupTime,PickupNumber")] Order order)
         {
             if (id != order.OrderId)
             {

@@ -48,13 +48,11 @@ namespace PatatZaak.Controllers
         // GET: Products/Create
         public IActionResult Create()
         {
-            ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "OrderId");
+            ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "Ordernumber"); // Hier ook Ordernumber voor meer duidelijkheid
             return View();
         }
 
         // POST: Products/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ProductId,ProductName,ProductCat,ProductDescription,ProductPoints,ProductDiscount,Photopath,OrderId")] Product product)
@@ -65,7 +63,7 @@ namespace PatatZaak.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "OrderId", product.OrderId);
+            ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "Ordernumber", product.OrderId);
             return View(product);
         }
 
@@ -82,13 +80,11 @@ namespace PatatZaak.Controllers
             {
                 return NotFound();
             }
-            ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "OrderId", product.OrderId);
+            ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "Ordernumber", product.OrderId);
             return View(product);
         }
 
         // POST: Products/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ProductId,ProductName,ProductCat,ProductDescription,ProductPoints,ProductDiscount,Photopath,OrderId")] Product product)
@@ -118,7 +114,7 @@ namespace PatatZaak.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "OrderId", product.OrderId);
+            ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "Ordernumber", product.OrderId);
             return View(product);
         }
 
@@ -154,6 +150,45 @@ namespace PatatZaak.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Products/AddProductToOrder
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddProductToOrder(int orderId, int productId, int quantity)
+        {
+            if (quantity <= 0) return BadRequest("Quantity must be greater than zero.");
+
+            var product = await _context.Product.FindAsync(productId);
+            if (product == null) return NotFound();
+
+            var order = await _context.Order.Include(o => o.Products).FirstOrDefaultAsync(o => o.OrderId == orderId);
+            if (order == null) return NotFound();
+
+            var existingProduct = order.Products.FirstOrDefault(p => p.ProductId == productId);
+
+            if (existingProduct != null)
+            {
+                existingProduct.ProductQuantity += quantity;
+                if (existingProduct.ProductQuantity <= 0)
+                {
+                    order.Products.Remove(existingProduct); // Verwijder product als de hoeveelheid nul of negatief wordt
+                }
+            }
+            else
+            {
+                order.Products.Add(new Product
+                {
+                    ProductId = productId,
+                    ProductQuantity = quantity,
+                    ProductPrice = product.ProductPrice,
+                    ProductName = product.ProductName,
+                    ProductDescription = product.ProductDescription
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Edit", "Orders", new { id = orderId });
         }
 
         private bool ProductExists(int id)

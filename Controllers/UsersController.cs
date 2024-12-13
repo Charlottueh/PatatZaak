@@ -53,8 +53,6 @@ namespace PatatZaak.Controllers
         }
 
         // POST: Users/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("UserId,UserName,Password,RoleId")] User user)
@@ -87,8 +85,6 @@ namespace PatatZaak.Controllers
         }
 
         // POST: Users/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("UserId,UserName,Password,RoleId")] User user)
@@ -156,6 +152,7 @@ namespace PatatZaak.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // Helper method to check if a user exists
         private bool UserExists(int id)
         {
             return _context.User.Any(e => e.UserId == id);
