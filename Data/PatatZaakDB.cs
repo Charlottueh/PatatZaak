@@ -80,6 +80,18 @@ namespace PatatZaak.Data
                 .Property(p => p.OrderId)
                 .IsRequired();
 
+            modelBuilder.Entity<Product>()
+                .Property(p => p.ProductPoints)
+                .IsRequired();
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.ProductPrice)
+                .HasColumnType("decimal(18,2)"); // Prijs met precisie instellen
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.ProductQuantity)
+                .IsRequired();
+
             // User Configuration
             modelBuilder.Entity<User>()
                 .HasKey(u => u.UserId);
@@ -91,6 +103,7 @@ namespace PatatZaak.Data
             modelBuilder.Entity<User>()
                 .Property(u => u.Password)
                 .IsRequired();
+
 
         }
     }
