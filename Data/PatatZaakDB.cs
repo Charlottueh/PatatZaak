@@ -56,6 +56,8 @@ namespace PatatZaak.Data
                 .WithMany()
                 .HasForeignKey(o => o.UserId);
 
+
+
             // Product Configuration
             modelBuilder.Entity<Product>()
                 .HasKey(p => p.ProductId);
@@ -80,17 +82,16 @@ namespace PatatZaak.Data
                 .Property(p => p.OrderId)
                 .IsRequired();
 
-            modelBuilder.Entity<Product>()
-                .Property(p => p.ProductPoints)
-                .IsRequired();
-
-            modelBuilder.Entity<Product>()
-                .Property(p => p.ProductPrice)
-                .HasColumnType("decimal(18,2)"); // Prijs met precisie instellen
 
             modelBuilder.Entity<Product>()
                 .Property(p => p.ProductQuantity)
                 .IsRequired();
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.ProductPrice)
+                .HasColumnType("decimal(18,2)") // Prijs met precisie instellen
+                .IsRequired();
+
 
             // User Configuration
             modelBuilder.Entity<User>()

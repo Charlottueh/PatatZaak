@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PatatZaak.Data;
 
@@ -11,9 +12,11 @@ using PatatZaak.Data;
 namespace PatatZaak.Migrations
 {
     [DbContext(typeof(PatatZaakDB))]
-    partial class PatatZaakDBModelSnapshot : ModelSnapshot
+    [Migration("20241213090219_AddToDatabaseTwo")]
+    partial class AddToDatabaseTwo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,12 +38,6 @@ namespace PatatZaak.Migrations
 
                     b.Property<int>("Ordernumber")
                         .HasColumnType("int");
-
-                    b.Property<int>("PickupNumber")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("PickupTime")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");

@@ -24,5 +24,10 @@ namespace PatatZaak.Models.Businesslayer
         {
             get => Products?.Sum(p => p.ProductPrice * p.ProductQuantity) ?? 0;
         }
+
+        public DateTime PickupTime { get; set; } // Tijd van ophalen
+        
+        [Required]
+        public int PickupNumber { get; set; } // Willekeurig ophaalnummer
     }
 }
