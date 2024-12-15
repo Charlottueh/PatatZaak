@@ -33,8 +33,8 @@ namespace PatatZaak.Models.Businesslayer
 
         [Required]
         public int? OrderId { get; set; }
-        public Order? Order { get; set; }   
+        public Order? Order { get; set; }
 
-
+        public ICollection<Addon> AvailableAddons { get; set; }
     }
 }

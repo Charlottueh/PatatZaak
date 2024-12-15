@@ -1,4 +1,6 @@
-﻿namespace PatatZaak.Models.Viewmodels
+﻿using PatatZaak.Models.Businesslayer;
+
+namespace PatatZaak.Models.Viewmodels
 {
     public class CartViewModel
     {

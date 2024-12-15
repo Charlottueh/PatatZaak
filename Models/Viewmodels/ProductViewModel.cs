@@ -1,4 +1,6 @@
-﻿namespace PatatZaak.Models.Viewmodels
+﻿using PatatZaak.Models.Businesslayer;
+
+namespace PatatZaak.Models.Viewmodels
 {
     public class ProductViewModel
     {
@@ -9,5 +11,6 @@
         public int ProductQuantity { get; set; }
         public string? Photopath { get; set; }
         public int QuantityInCart { get; set; }
+        public List<Addon> AvailableAddons { get; set; } // List of Addons for the product
     }
 }

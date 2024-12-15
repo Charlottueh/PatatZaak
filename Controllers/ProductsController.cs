@@ -35,12 +35,14 @@ namespace PatatZaak.Controllers
             // Try to parse the string to an integer (if userId is stored as an integer in the Order table)
             if (int.TryParse(userIdString, out userId))
             {
-                // Get all products
-                var products = _context.Product.ToList();
+                // Get all products and their available add-ons
+                var products = _context.Product
+                                       .Include(p => p.AvailableAddons) // Assuming you have a navigation property for Addons
+                                       .ToList();
 
                 // Get the current cart (Order) for the user
                 var order = _context.Order
-                                    .Include(o => o.Products)
+                                    .Include(o => o.Products)  // Assuming Order has a Products navigation property
                                     .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);  // In Progress order
 
                 // Get the cart items, or an empty list if no order exists
@@ -52,9 +54,10 @@ namespace PatatZaak.Controllers
                     ProductId = p.ProductId,
                     ProductName = p.ProductName,
                     ProductPrice = p.ProductPrice,
-                    ProductQuantity = p.ProductQuantity,
                     Photopath = p.Photopath,
-                    QuantityInCart = cartItems.FirstOrDefault(ci => ci.ProductId == p.ProductId)?.ProductQuantity ?? 0
+                    AvailableAddons = p.AvailableAddons.ToList(), // List of available add-ons for each product
+                    QuantityInCart = cartItems.FirstOrDefault(ci => ci.ProductId == p.ProductId)?.ProductQuantity ?? 0,
+                    ProductQuantity = p.ProductQuantity // Assuming you need to display product quantity from the Product table
                 }).ToList();
 
                 return View(viewModel);
