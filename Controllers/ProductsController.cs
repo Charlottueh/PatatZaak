@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PatatZaak.Data;
 using PatatZaak.Models.Businesslayer;
+using PatatZaak.Models.Viewmodels;
 
 namespace PatatZaak.Controllers
 {
@@ -25,10 +26,44 @@ namespace PatatZaak.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var patatZaakDB = _context.Product.Include(p => p.Order);
-            return View(await patatZaakDB.ToListAsync());
+            // Get the current user ID from User.Identity.Name (assuming it's a string)
+            var userIdString = User.Identity.Name;
+            int userId;
+
+            // Try to parse the string to an integer (if userId is stored as an integer in the Order table)
+            if (int.TryParse(userIdString, out userId))
+            {
+                // Get all products
+                var products = _context.Product.ToList();
+
+                // Get the current cart (Order) for the user
+                var order = _context.Order
+                                    .Include(o => o.Products)
+                                    .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);  // In Progress order
+
+                // Get the cart items, or an empty list if no order exists
+                var cartItems = order?.Products.ToList() ?? new List<Product>();
+
+                // Create a ViewModel to pass to the view
+                var viewModel = products.Select(p => new ProductViewModel
+                {
+                    ProductId = p.ProductId,
+                    ProductName = p.ProductName,
+                    ProductPrice = p.ProductPrice,
+                    ProductQuantity = p.ProductQuantity,
+                    Photopath = p.Photopath,
+                    QuantityInCart = cartItems.FirstOrDefault(ci => ci.ProductId == p.ProductId)?.ProductQuantity ?? 0
+                }).ToList();
+
+                return View(viewModel);
+            }
+            else
+            {
+                // Handle the case where the UserId is not a valid integer
+                return RedirectToAction("Error");  // Redirect to an error page or show a message
+            }
         }
 
         // GET: Products/Details/5

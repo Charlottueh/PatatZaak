@@ -7,6 +7,7 @@ using PatatZaak.Models.Viewmodels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 
 namespace PatatZaak.Controllers
 {
@@ -204,7 +205,7 @@ namespace PatatZaak.Controllers
         public IActionResult AddToCart(int productId, int quantity)
         {
             // Get the user ID from User.Identity.Name (assuming it returns the user ID as a string)
-            var userIdString = User.Identity.Name;
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);  // Correct way to get the user ID in ASP.NET Core Identity
             int userId;
 
             // Try to parse the string to an integer
@@ -215,11 +216,12 @@ namespace PatatZaak.Controllers
 
                 if (order == null)
                 {
+                    // Create a new order if no active order exists
                     order = new Order
                     {
                         UserId = userId,
                         OrderStatus = 0,  // Should remain an integer
-                        Products = new List<Product>()  // Assuming Product exists
+                        Products = new List<Product>()  // Correct type for products in the order
                     };
                     _context.Order.Add(order);
                     _context.SaveChanges();  // Save new order to database
@@ -234,7 +236,7 @@ namespace PatatZaak.Controllers
                 var existingProduct = order.Products.FirstOrDefault(p => p.ProductId == productId);
                 if (existingProduct != null)
                 {
-                    existingProduct.ProductQuantity += quantity;
+                    existingProduct.ProductQuantity += quantity;  // Increase quantity
                 }
                 else
                 {
