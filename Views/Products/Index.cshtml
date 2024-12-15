@@ -6,50 +6,155 @@
         <div class="product-item">
             <!-- Ensure correct Razor syntax for src -->
             <img src="@(!string.IsNullOrEmpty(product.Photopath) ? product.Photopath : "/images/default.jpg")" alt="@product.ProductName" class="product-image" />
-            
+
             <div class="product-details">
                 <h3>@product.ProductName</h3>
-                <p>Price: @product.ProductPrice.ToString("C")</p>
+                <p>Price: €@product.ProductPrice.ToString("F2")</p>
+
+                <!-- Quantity control for add/remove from cart -->
                 <div class="quantity-control">
-                    <button class="btn btn-danger" onclick="removeFromCart(@product.ProductId)">
+                    <button class="btn btn-danger remove-from-cart" data-product-id="@product.ProductId">
                         -
                     </button>
                     <span>@product.QuantityInCart</span>
-                    <button class="btn btn-success" onclick="addToCart(@product.ProductId)">
+                    <button class="btn btn-success add-to-cart" data-product-id="@product.ProductId">
                         +
                     </button>
+                </div>
+
+                <!-- Add to Basket modal button -->
+                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#productModal-@product.ProductId">Add to Basket</button>
+            </div>
+        </div>
+
+        <!-- Modal for each product -->
+        <div class="modal fade" id="productModal-@product.ProductId" tabindex="-1" role="dialog" aria-labelledby="productModalLabel-@product.ProductId" data-product-id="@product.ProductId" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <form method="post" asp-action="AddProductToBasket">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="productModalLabel-@product.ProductId">@product.ProductName</h5>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="productId" name="ProductToAdd.ProductId" value="@product.ProductId" />
+                            <input type="hidden" id="basketId" name="Basket.Identifier" value="@Model.Basket.Identifier" />
+
+                            <h6>Select Addons:</h6>
+                            @foreach (var addon in product.AvailableAddons)
+                            {
+                                <div>
+                                    <input type="checkbox"
+                                           name="SelectedAddons"
+                                           value="@addon.Identifier"
+                                           id="addon-@addon.Identifier"
+                                           data-addon-price="@addon.Price"
+                                           class="addon-checkbox" />
+                                    <label for="addon-@addon.Identifier">@addon.Name (€@addon.Price)</label>
+                                </div>
+                            }
+
+                            <label for="ProductCount">Quantity:</label>
+                            <input type="number"
+                                   id="ProductCount"
+                                   name="ProductToAdd.Count"
+                                   class="form-control"
+                                   value="1" min="1" />
+                        </div>
+                        <div class="modal-footer">
+                            <h5>
+                                €<span id="productPrice-@product.ProductId"
+                                       data-base-price="@product.ProductPrice.ToString("F2")">
+                                    @product.ProductPrice.ToString("F2")
+                                </span>
+                            </h5>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Add to Basket</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     }
 </div>
 
-function addToCart(productId) {
-    $.ajax({
-        url: '/Product/AddToCart',
-        type: 'POST',
-        data: { productId: productId, quantity: 1 },
-        success: function (response) {
-            // Handle the response (for example, logging it)
-            console.log(response); // Log the response to the console (or use it in the UI)
+<!-- Script to update price in modal -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const updatePrice = (productId) => {
+            const priceElement = document.querySelector(`#productPrice-${productId}`);
+            if (!priceElement) {
+                console.error(`Price element not found for product ID: ${productId}`);
+                return;
+            }
 
-            // Optionally, reload the page
-            location.reload();
-        }
+            const basePrice = parseFloat(priceElement.getAttribute('data-base-price'));
+            if (isNaN(basePrice)) {
+                console.error(`Base price is invalid for product ID: ${productId}`);
+                return;
+            }
+
+            const addonCheckboxes = document.querySelectorAll(`#productModal-${productId} .addon-checkbox:checked`);
+            let addonsPrice = 0;
+            addonCheckboxes.forEach((checkbox) => {
+                const addonPrice = parseFloat(checkbox.getAttribute('data-addon-price'));
+                if (!isNaN(addonPrice)) {
+                    addonsPrice += addonPrice;
+                } else {
+                    console.error(`Addon price invalid for checkbox: ${checkbox.id}`);
+                }
+            });
+
+            const totalPrice = basePrice + addonsPrice;
+            priceElement.textContent = totalPrice.toFixed(2);
+        };
+
+        // Attach change event listener for addon checkboxes
+        document.querySelectorAll(".addon-checkbox").forEach((checkbox) => {
+            checkbox.addEventListener("change", function () {
+                const productId = this.closest(".modal").getAttribute("data-product-id");
+                updatePrice(productId);
+            });
+        });
+
+        // Attach click event listeners for add/remove buttons
+        document.querySelectorAll(".add-to-cart").forEach((button) => {
+            button.addEventListener("click", function () {
+                const productId = this.getAttribute("data-product-id");
+                addToCart(productId);
+            });
+        });
+
+        document.querySelectorAll(".remove-from-cart").forEach((button) => {
+            button.addEventListener("click", function () {
+                const productId = this.getAttribute("data-product-id");
+                removeFromCart(productId);
+            });
+        });
     });
-}
 
-function removeFromCart(productId) {
-    $.ajax({
-        url: '/Product/RemoveFromCart',
-        type: 'POST',
-        data: { productId: productId, quantity: 1 },
-        success: function (response) {
-            // Handle the response (for example, logging it)
-            console.log(response); // Log the response to the console (or use it in the UI)
+    // Add to cart function
+    function addToCart(productId) {
+        $.ajax({
+            url: '/Product/AddToCart',
+            type: 'POST',
+            data: { productId: productId, quantity: 1 },
+            success: function (response) {
+                console.log(response); // Log the response to the console
+                location.reload(); // Reload to show updated cart
+            }
+        });
+    }
 
-            // Optionally, reload the page
-            location.reload();
-        }
-    });
-}
+    // Remove from cart function
+    function removeFromCart(productId) {
+        $.ajax({
+            url: '/Product/RemoveFromCart',
+            type: 'POST',
+            data: { productId: productId, quantity: 1 },
+            success: function (response) {
+                console.log(response); // Log the response to the console
+                location.reload(); // Reload to show updated cart
+            }
+        });
+    }
+</script>
