@@ -26,8 +26,24 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Product" asp-action="Create">product</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">Menu</a>
                         </li>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class ="nav-item">
+                                <form asp-controller="Users" asp-action="Logout" method="post" style="display: inline;">
+                                    <button type="submit" class="nav-link text-dark" onclick="return confirm('Weet u zeker dat u wilt uitloggen?');">
+                                        Uitloggen
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Login">Log in</a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

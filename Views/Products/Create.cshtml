@@ -140,15 +140,9 @@
             </div>
 
             <!-- Photopath -->
-            <div class="form-control">
-                <input asp-for="Photopath" required="" />
-                <label for="Photopath">
-                    <span style="transition-delay:0ms">F</span>
-                    <span style="transition-delay:50ms">o</span>
-                    <span style="transition-delay:100ms">t</span>
-                    <span style="transition-delay:150ms">o</span>
-                </label>
-                <span asp-validation-for="Photopath" class="text-danger"></span>
+            <div class="form-group">
+                <label>Foto</label>
+                <input type="file" name="Photo" class="form-control" />
             </div>
 
             <div class="form-group">

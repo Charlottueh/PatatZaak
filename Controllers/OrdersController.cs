@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PatatZaak.Data;
@@ -201,59 +202,67 @@ namespace PatatZaak.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Orders/AddToCart/5
-        public IActionResult AddToCart(int productId, int quantity)
+        [Authorize]
+        public async Task<IActionResult> AddToCart(int productId, int quantity)
         {
-            var userIdString = User.Identity.Name; // Get the current user ID (assuming it's a string)
+            // Haal de UserId van de ingelogde gebruiker op
+            var userIdString = User.Identity.Name;
             int userId;
 
-            if (int.TryParse(userIdString, out userId))
+            // Controleer of de UserId een geldig geheel getal is
+            if (!int.TryParse(userIdString, out userId))
             {
-                // Find or create an order (cart)
-                var order = _context.Order.Include(o => o.Products)
-                    .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);  // In Progress order
-
-                if (order == null)
-                {
-                    order = new Order
-                    {
-                        UserId = userId,
-                        OrderStatus = 0,  // Order status 'In Progress'
-                        Products = new List<Product>()
-                    };
-                    _context.Order.Add(order); // Add the order if it doesn't exist
-                    _context.SaveChanges(); // Save to DB
-                }
-
-                var product = _context.Product.Find(productId); // Get the product
-                if (product == null)
-                {
-                    return NotFound();
-                }
-
-                // Check if the product already exists in the cart, and update quantity if it does
-                var existingProduct = order.Products.FirstOrDefault(p => p.ProductId == productId);
-                if (existingProduct != null)
-                {
-                    existingProduct.ProductQuantity += quantity; // Add the quantity
-                }
-                else
-                {
-                    order.Products.Add(new Product
-                    {
-                        ProductId = productId,
-                        ProductQuantity = quantity,
-                        ProductPrice = product.ProductPrice,
-                        ProductName = product.ProductName
-                    });
-                }
-
-                _context.SaveChanges(); // Save changes to the cart (order)
-
-                return Json(new { success = true, message = "Item added to cart" });
+                return Json(new { success = false, message = "Ongeldige gebruiker" });
             }
 
-            return Json(new { success = false, message = "Invalid user ID" });
+            // Zoek naar een bestaande order voor deze gebruiker (Winkelwagentje)
+            var order = await _context.Order.Include(o => o.Products)
+                .FirstOrDefaultAsync(o => o.OrderStatus == 0 && o.UserId == userId); // Zoek naar een order die 'In Progress' is
+
+            if (order == null)
+            {
+                // Als er geen order bestaat, maak dan een nieuwe aan
+                order = new Order
+                {
+                    UserId = userId,
+                    OrderStatus = 0,  // Status 0 = In Progress
+                    Products = new List<Product>()
+                };
+                _context.Order.Add(order); // Voeg de nieuwe order toe aan de database
+                await _context.SaveChangesAsync(); // Sla op
+            }
+
+            // Zoek het product op basis van productId
+            var product = await _context.Product.FindAsync(productId);
+            if (product == null)
+            {
+                return Json(new { success = false, message = "Product niet gevonden" });
+            }
+
+            // Controleer of het product al in de winkelwagentje staat
+            var existingProduct = order.Products.FirstOrDefault(p => p.ProductId == productId);
+            if (existingProduct != null)
+            {
+                // Als het product al in de winkelwagentje staat, verhoog dan de hoeveelheid
+                existingProduct.ProductQuantity += quantity;
+            }
+            else
+            {
+                // Als het product nog niet in de winkelwagentje staat, voeg het dan toe
+                order.Products.Add(new Product
+                {
+                    ProductId = productId,
+                    ProductQuantity = quantity,
+                    ProductPrice = product.ProductPrice,
+                    ProductName = product.ProductName
+                });
+            }
+
+            // Sla de wijzigingen op in de database
+            await _context.SaveChangesAsync();
+
+            // Geef een succesbericht terug
+            return Json(new { success = true, message = "Product toegevoegd aan winkelwagentje" });
         }
 
         // GET: Orders/Cart/5

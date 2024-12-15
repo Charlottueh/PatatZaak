@@ -42,46 +42,28 @@ namespace PatatZaak.Controllers
         }
 
         // GET: Products
+        [AllowAnonymous]
         public IActionResult Index()
         {
-            // Get the current user ID
-            var userIdString = User.Identity.Name;
-            int userId;
+            // Haal de producten op
+            var products = _context.Product.Include(p => p.AvailableAddons).ToList();
 
-            if (int.TryParse(userIdString, out userId))
+            // Maak een lijst van ProductViewModels
+            var productViewModels = products.Select(p => new ProductViewModel
             {
-                // Get all products with their available add-ons
-                var products = _context.Product
-                                       .Include(p => p.AvailableAddons) // Include add-ons
-                                       .ToList();
+                ProductId = p.ProductId,
+                ProductName = p.ProductName,
+                ProductPrice = p.ProductPrice,
+                ProductQuantity = p.ProductQuantity,
+                Photopath = p.Photopath,
+                // Voeg hier je logica toe voor QuantityInCart en AvailableAddons
+                QuantityInCart = 0,  // Stel in op 0 voor het voorbeeld
+                AvailableAddons = p.AvailableAddons.ToList()
+            }).ToList();
 
-                // Get the current cart (Order) for the user
-                var order = _context.Order
-                                    .Include(o => o.Products)
-                                    .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);  // Active order
-
-                var cartItems = order?.Products.ToList() ?? new List<Product>();
-
-                // Create the ViewModel
-                var viewModel = products.Select(p => new ProductViewModel
-                {
-                    ProductId = p.ProductId,
-                    ProductName = p.ProductName,
-                    ProductPrice = p.ProductPrice,
-                    ProductQuantity = p.ProductQuantity,
-                    Photopath = p.Photopath,
-                    QuantityInCart = cartItems.FirstOrDefault(ci => ci.ProductId == p.ProductId)?.ProductQuantity ?? 0,
-                    AvailableAddons = p.AvailableAddons.ToList()
-                }).ToList();
-
-                return View(viewModel);
-            }
-            else
-            {
-                return RedirectToAction("Error");
-            }
+            // Geef de lijst van ProductViewModels door naar de view
+            return View(productViewModels);
         }
-
 
         // GET: Products/Details/5
         public async Task<IActionResult> Details(int? id)

@@ -1,5 +1,47 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model PatatZaak.Models.Viewmodels.LoginVM
+
 @{
+    ViewData["Title"] = "Login Page";
 }
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - PatatZaak</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="login-body">
+        <div class="login-container">
+            <div class="form">
+                <h1 class="form-title">Log in</h1>
+                <form asp-action="Login" method="post" class="login-form">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="login-form-group">
+                        <label asp-for="UserName">Naam</label>
+                        <input asp-for="UserName" class="form-control" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+
+                    <div class="login-form-group">
+                        <label asp-for="Password">Wachtwoord</label>
+                        <input asp-for="Password" type="password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <a href="/Users/AccountReg" class="signup-link">Nog geen account? Meld je hier aan!</a>
+                    <button type="submit" class="submit">Inloggen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the following script for client-side validation -->
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

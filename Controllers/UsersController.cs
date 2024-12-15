@@ -328,57 +328,58 @@ namespace PatatZaak.Controllers.DataController
         }
 
         // GET: Users/Register
-        public IActionResult Register()
+        [HttpGet]
+        public IActionResult AccountReg()
         {
-            var roles = _context.Role
-                .Where(r => r.RoleName != "admin")  // You can exclude admins from regular user registration
-                .Select(r => new { r.RoleId, r.RoleName })
-                .ToList();
-
-            ViewBag.RoleId = new SelectList(roles, "RoleId", "RoleName");
+            // Voor de dropdownlijst voor rollen
+            ViewData["RoleId"] = new SelectList(_context.Role, "RoleId", "RoleName");
             return View();
         }
 
         // POST: Users/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterVM registerVM)
+        public async Task<IActionResult> AccountReg(RegisterVM registerVM)
         {
             if (ModelState.IsValid)
             {
-                // Check if the username already exists
+                // Check of de gebruikersnaam al bestaat in de database
                 var existingUser = await _context.User
                     .FirstOrDefaultAsync(u => u.UserName == registerVM.UserName);
 
                 if (existingUser != null)
                 {
+                    // Als de gebruiker al bestaat, voeg een foutmelding toe aan de modelstate
                     ModelState.AddModelError("UserName", "Deze gebruikersnaam bestaat al.");
                 }
                 else
                 {
-                    // Create a new User object from the view model
+                    // Maak een nieuwe User object aan
                     var user = new User
                     {
                         UserName = registerVM.UserName,
+                        // Wachtwoord hashen
                         Password = _passwordHasher.HashPassword(new User(), registerVM.Password),
-                        RoleId = registerVM.RoleId // Assign the correct role
+                        RoleId = registerVM.RoleId // Rol van de gebruiker
                     };
 
+                    // Voeg de gebruiker toe aan de context (de database)
                     _context.Add(user);
-                    await _context.SaveChangesAsync();
+                    await _context.SaveChangesAsync();  // Sla de gebruiker op in de database
 
-                    return RedirectToAction("Index", "Home");  // Redirect after successful registration
+                    // Na succesvolle registratie, redirect naar de homepage
+                    return RedirectToAction("Index", "Home");
                 }
             }
 
-            // If validation fails, return the view with the same model
+            // Als er fouten zijn, stuur de gebruiker terug naar de registratiepagina
             ViewData["RoleId"] = new SelectList(_context.Role, "RoleId", "RoleName", registerVM.RoleId);
             return View(registerVM);
         }
-    
 
-    //LOGOUT
-    [Authorize]
+
+        //LOGOUT
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
