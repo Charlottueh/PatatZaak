@@ -1,0 +1,29 @@
+﻿@model PatatZaak.Models.Businesslayer.Order
+
+@{
+    ViewData["Title"] = "Bestelling Klaar";
+}
+
+<h2>Bestelling Klaar</h2>
+<p>De bestelling met ophaalnummer <strong>@Model.PickupNumber</strong> is klaar voor afhalen.</p>
+
+<script>
+    // Tekst die wordt voorgelezen
+    var pickupNumber = @Model.PickupNumber;
+    var textToSpeak = "De bestelling met ophaalnummer " + pickupNumber + " is klaar voor afhalen.";
+
+    // Functie om tekst te laten voorlezen
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            var speech = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(speech);
+        } else {
+            alert("Spraakfunctionaliteit wordt niet ondersteund in deze browser.");
+        }
+    }
+
+    // Activeer spraak wanneer de pagina laadt
+    window.onload = function () {
+        speakText(textToSpeak);
+    };
+</script>

@@ -1,13 +1,30 @@
+using PatatZaak.Data;
+
 namespace PatatZaak
 {
-    public class Program
+    internal class Program
     {
-        public static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
+
             // Add services to the container.
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<PatatZaakDB>();
+            builder.Services.AddAuthentication("Cookies")
+                .AddCookie("Cookies", options =>
+                {
+                    options.LoginPath = "/Users/Login";
+                    options.LogoutPath = "/Users/Logout";
+                    options.AccessDeniedPath = "/Users/Login";
+
+
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.SlidingExpiration = true;
+                });
 
             var app = builder.Build();
 
@@ -15,10 +32,17 @@ namespace PatatZaak
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseStatusCodePagesWithReExecute("/Home/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            if (app.Environment.IsDevelopment())
+            {
 
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+            app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 

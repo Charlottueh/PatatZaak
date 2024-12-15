@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PatatZaak.Data;
 using PatatZaak.Models.Businesslayer;
+using PatatZaak.Models.Viewmodels;
 
 namespace PatatZaak.Controllers
 {
@@ -20,23 +17,20 @@ namespace PatatZaak.Controllers
         }
 
         // GET: Orders
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var patatZaakDB = _context.Order.Include(o => o.OrderUser);
-            return View(await patatZaakDB.ToListAsync());
+            var orders = _context.Order.Include(o => o.Products).Include(o => o.OrderUser).ToList();
+            return View(orders);
         }
 
         // GET: Orders/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var order = await _context.Order
+            var order = _context.Order
+                .Include(o => o.Products)
                 .Include(o => o.OrderUser)
-                .FirstOrDefaultAsync(m => m.OrderId == id);
+                .FirstOrDefault(o => o.OrderId == id);
+
             if (order == null)
             {
                 return NotFound();
@@ -48,131 +42,73 @@ namespace PatatZaak.Controllers
         // GET: Orders/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.User, "UserId", "Password");
+            ViewBag.UserId = new SelectList(_context.User, "Id", "Username");
             return View();
         }
 
         // POST: Orders/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OrderId,Ordernumber,OrderStatus,UserId,PickupTime,PickupNumber")] Order order)
+        public IActionResult Create(Order order)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(order);
-                await _context.SaveChangesAsync();
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.User, "UserId", "Password", order.UserId);
+
+            ViewBag.UserId = new SelectList(_context.User, "Id", "Username", order.UserId);
             return View(order);
         }
 
-        // POST: Orders/AddProductToOrder
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult AddProductToOrder(int orderId, int productId, int quantity)
-        {
-            if (quantity <= 0) return BadRequest("Quantity must be greater than zero.");
-
-            var order = _context.Order.Include(o => o.Products).FirstOrDefault(o => o.OrderId == orderId);
-            if (order == null) return NotFound();
-
-            var product = _context.Product.Find(productId);
-            if (product == null) return NotFound();
-
-            var existingProduct = order.Products.FirstOrDefault(p => p.ProductId == productId);
-
-            if (existingProduct != null)
-            {
-                existingProduct.ProductQuantity += quantity;
-
-                if (existingProduct.ProductQuantity <= 0)
-                {
-                    // Verwijder product als de hoeveelheid 0 of negatief is
-                    order.Products.Remove(existingProduct);
-                }
-            }
-            else
-            {
-                if (quantity > 0)
-                {
-                    order.Products.Add(new Product
-                    {
-                        ProductId = productId,
-                        ProductQuantity = quantity,
-                        ProductPrice = product.ProductPrice,
-                        ProductName = product.ProductName,
-                        ProductDescription = product.ProductDescription
-                    });
-                }
-            }
-
-            _context.SaveChanges();
-            return RedirectToAction("Edit", new { id = orderId });
-        }
-
         // GET: Orders/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var order = await _context.Order.FindAsync(id);
+            var order = _context.Order.Find(id);
             if (order == null)
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.User, "UserId", "Password", order.UserId);
+
+            ViewBag.UserId = new SelectList(_context.User, "Id", "Username", order.UserId);
             return View(order);
         }
 
         // POST: Orders/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OrderId,Ordernumber,OrderStatus,UserId,PickupTime,PickupNumber")] Order order)
+        public IActionResult Edit(Order order)
         {
-            if (id != order.OrderId)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                ViewBag.UserId = new SelectList(_context.User, "Id", "Username", order.UserId);
+                return View(order);
             }
 
-            if (ModelState.IsValid)
+            var existingOrder = _context.Order.Find(order.OrderId);
+            if (existingOrder == null)
             {
-                try
-                {
-                    _context.Update(order);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!OrderExists(order.OrderId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return NotFound("Order not found");
             }
-            ViewData["UserId"] = new SelectList(_context.User, "UserId", "Password", order.UserId);
-            return View(order);
+
+            existingOrder.Ordernumber = order.Ordernumber;
+            existingOrder.OrderStatus = order.OrderStatus;
+            existingOrder.UserId = order.UserId;
+
+            _context.Update(existingOrder);
+            _context.SaveChanges();
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Orders/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var order = _context.Order
+                .Include(o => o.Products)
+                .FirstOrDefault(o => o.OrderId == id);
 
-            var order = await _context.Order
-                .Include(o => o.OrderUser)
-                .FirstOrDefaultAsync(m => m.OrderId == id);
             if (order == null)
             {
                 return NotFound();
@@ -184,21 +120,70 @@ namespace PatatZaak.Controllers
         // POST: Orders/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var order = await _context.Order.FindAsync(id);
-            if (order != null)
+            var order = _context.Order.Find(id);
+            if (order == null)
             {
-                _context.Order.Remove(order);
+                return NotFound();
             }
 
-            await _context.SaveChangesAsync();
+            _context.Order.Remove(order);
+            _context.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool OrderExists(int id)
+        // GET: Orders/Confirmation/5
+        public IActionResult Confirmation(int id)
         {
-            return _context.Order.Any(e => e.OrderId == id);
+            // Haal de order op uit de database
+            var order = _context.Order
+                .Include(o => o.Products)
+                .FirstOrDefault(o => o.OrderId == id);
+
+            // Controleer of de order bestaat
+            if (order == null)
+            {
+                return NotFound("Order not found");
+            }
+
+            // Maak het viewmodel aan en vul het met de orderdata
+            var viewModel = new ConfirmationVM
+            {
+                OrderNumber = order.Ordernumber,
+                TotalPrice = order.TotalPrice,
+                Products = order.Products.Select(p => new ProductVM
+                {
+                    ProductName = p.ProductName,
+                    ProductPrice = p.ProductPrice,
+                    ProductQuantity = p.ProductQuantity
+                }).ToList()
+            };
+
+            // Genereer het ophaalnummer en de ophaaltijd
+            viewModel.GeneratePickupNumber();  // Genereer het ophaalnummer
+            viewModel.GeneratePickupTime(order.PickupTime);  // Genereer de pickup time
+
+            // Retourneer het viewmodel naar de view
+            return View(viewModel);
+        }
+        // POST: Orders/UpdateStatus/5
+        [HttpPost]
+        public IActionResult UpdateStatus(int id)
+        {
+            var order = _context.Order.Find(id);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            if (order.OrderStatus < 2)
+            {
+                order.OrderStatus++;
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }
