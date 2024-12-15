@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using PatatZaak.Data;
 
 namespace PatatZaak
@@ -15,16 +16,17 @@ namespace PatatZaak
             builder.Services.AddControllersWithViews();
             builder.Services.AddDbContext<PatatZaakDB>();
             builder.Services.AddAuthentication("Cookies")
-                .AddCookie("Cookies", options =>
-                {
-                    options.LoginPath = "/Users/Login";
-                    options.LogoutPath = "/Users/Logout";
-                    options.AccessDeniedPath = "/Users/Login";
+            .AddCookie("Cookies", options =>
+            {
+                options.LoginPath = "/Users/Login";
+                options.LogoutPath = "/Users/Logout";
+                options.AccessDeniedPath = "/Users/Login";
 
 
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-                    options.SlidingExpiration = true;
-                });
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.SlidingExpiration = true;
+            });
+
 
             var app = builder.Build();
 

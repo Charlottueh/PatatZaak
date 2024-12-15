@@ -1,0 +1,28 @@
+﻿
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1>Admin Dashboard</h1>
+<br />
+<div class="col-md-4 form-act">
+    <h3>Hallo Admin,</h3>
+    <p>Wat wilt u doen.</p>
+    <ul>
+        <li><a asp-controller="Products" asp-action="Create">Rollen</a></li>
+        <li><a asp-controller="" asp-action="Index">Activiteiten</a></li>
+        <li><a asp-controller="Locations" asp-action="Index">Locatie</a></li>
+        <li><a asp-controller="Categories" asp-action="Index">Categorieën</a></li>
+        <li><a asp-controller="Users" asp-action="Index">Gebruikers</a></li>
+        <li><a asp-controller="Gatherings" asp-action="SuggestiesIndex">Suggesties</a></li>
+        <li><a asp-controller="Home" asp-action="TicketScanner">Ticket Scanner</a></li>
+    </ul>
+</div>
+<br />
+
+@if (ViewData["NewSuggestions"] != null)
+{
+    <div class="alert alert-info">
+        <strong>@ViewData["NewSuggestions"]</strong>
+    </div>
+}

@@ -10,7 +10,7 @@ namespace PatatZaak.Models.Viewmodels
         public string ProductDescription { get; set; }
         public int ProductQuantity { get; set; }
         public string? Photopath { get; set; }
-        public int QuantityInCart { get; set; }
+        public int QuantityInCart { get; set; } // Use this for cart info
         public List<Addon> AvailableAddons { get; set; } // List of Addons for the product
     }
 }

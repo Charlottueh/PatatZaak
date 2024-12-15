@@ -11,6 +11,7 @@ namespace PatatZaak.Data
         public DbSet<Product> Product { get; set; }    
         public DbSet<Role> Role { get; set; }  
         public DbSet<User> User { get; set; }
+        public DbSet<Addon> Addons { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -27,7 +28,7 @@ namespace PatatZaak.Data
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Role Configuration with Seeding
+            // Role Configuration 
             modelBuilder.Entity<Role>()
                 .HasKey(r => r.RoleId);
 
@@ -105,6 +106,15 @@ namespace PatatZaak.Data
                 .Property(u => u.Password)
                 .IsRequired();
 
+            // Addon Configuration
+            modelBuilder.Entity<Addon>()
+                .HasKey(a => a.Identifier);
+
+            modelBuilder.Entity<Addon>()
+                .HasOne(a => a.Product)
+                .WithMany(p => p.AvailableAddons)
+                .HasForeignKey(a => a.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }

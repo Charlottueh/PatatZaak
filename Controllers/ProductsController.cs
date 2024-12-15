@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -25,49 +26,62 @@ namespace PatatZaak.Controllers
             _context = context;
         }
 
-        // GET: Products
-        public IActionResult Index()
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> AdminIndex()
         {
-            // Get the current user ID from User.Identity.Name (assuming it's a string)
-            var userIdString = User.Identity.Name;
-            int userId;
-
-            // Try to parse the string to an integer (if userId is stored as an integer in the Order table)
-            if (int.TryParse(userIdString, out userId))
-            {
-                // Get all products and their available add-ons
-                var products = _context.Product
-                                       .Include(p => p.AvailableAddons) // Assuming you have a navigation property for Addons
-                                       .ToList();
-
-                // Get the current cart (Order) for the user
-                var order = _context.Order
-                                    .Include(o => o.Products)  // Assuming Order has a Products navigation property
-                                    .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);  // In Progress order
-
-                // Get the cart items, or an empty list if no order exists
-                var cartItems = order?.Products.ToList() ?? new List<Product>();
-
-                // Create a ViewModel to pass to the view
-                var viewModel = products.Select(p => new ProductViewModel
+            var products = await _context.Product
+                .Select(p => new ProductViewModel
                 {
                     ProductId = p.ProductId,
                     ProductName = p.ProductName,
                     ProductPrice = p.ProductPrice,
                     Photopath = p.Photopath,
-                    AvailableAddons = p.AvailableAddons.ToList(), // List of available add-ons for each product
+                }).ToListAsync();
+
+            return View(products);
+        }
+
+        // GET: Products
+        public IActionResult Index()
+        {
+            // Get the current user ID
+            var userIdString = User.Identity.Name;
+            int userId;
+
+            if (int.TryParse(userIdString, out userId))
+            {
+                // Get all products with their available add-ons
+                var products = _context.Product
+                                       .Include(p => p.AvailableAddons) // Include add-ons
+                                       .ToList();
+
+                // Get the current cart (Order) for the user
+                var order = _context.Order
+                                    .Include(o => o.Products)
+                                    .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);  // Active order
+
+                var cartItems = order?.Products.ToList() ?? new List<Product>();
+
+                // Create the ViewModel
+                var viewModel = products.Select(p => new ProductViewModel
+                {
+                    ProductId = p.ProductId,
+                    ProductName = p.ProductName,
+                    ProductPrice = p.ProductPrice,
+                    ProductQuantity = p.ProductQuantity,
+                    Photopath = p.Photopath,
                     QuantityInCart = cartItems.FirstOrDefault(ci => ci.ProductId == p.ProductId)?.ProductQuantity ?? 0,
-                    ProductQuantity = p.ProductQuantity // Assuming you need to display product quantity from the Product table
+                    AvailableAddons = p.AvailableAddons.ToList()
                 }).ToList();
 
                 return View(viewModel);
             }
             else
             {
-                // Handle the case where the UserId is not a valid integer
-                return RedirectToAction("Error");  // Redirect to an error page or show a message
+                return RedirectToAction("Error");
             }
         }
+
 
         // GET: Products/Details/5
         public async Task<IActionResult> Details(int? id)

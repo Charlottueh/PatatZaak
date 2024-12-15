@@ -1,58 +1,86 @@
-﻿@model List<ProductViewModel>
+﻿@model IEnumerable<PatatZaak.Models.Viewmodels.ProductViewModel>
 
 <div class="product-list">
     @foreach (var product in Model)
+
     {
         <div class="product-item">
-            <!-- Ensure correct Razor syntax for src -->
-            <img src="@(!string.IsNullOrEmpty(product.Photopath) ? product.Photopath : "/images/default.jpg")" alt="@product.ProductName" class="product-image" />
+            <!-- Product Image -->
+            <img src="@(!string.IsNullOrEmpty(product.Photopath) ? product.Photopath : "/images/default.jpg")"
+                 alt="@product.ProductName"
+                 class="product-image" />
 
             <div class="product-details">
                 <h3>@product.ProductName</h3>
                 <p>Price: €@product.ProductPrice.ToString("F2")</p>
 
-                <!-- Quantity control for add/remove from cart -->
-                <div class="quantity-control">
-                    <button class="btn btn-danger remove-from-cart" data-product-id="@product.ProductId">
-                        -
-                    </button>
-                    <span>@product.QuantityInCart</span>
-                    <button class="btn btn-success add-to-cart" data-product-id="@product.ProductId">
-                        +
-                    </button>
-                </div>
-
                 <!-- Add to Basket modal button -->
-                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#productModal-@product.ProductId">Add to Basket</button>
+                <button class="btn btn-info"
+                        data-bs-toggle="modal"
+                        data-bs-target="#productModal-@product.ProductId">
+                    Add to Basket
+                </button>
+
+                @if (User.IsInRole("admin"))
+
+                {
+                    <!-- Edit button for admins -->
+                    <a href="@Url.Action("Edit", "Product", new { id = product.ProductId })"
+                       class="btn btn-warning mt-2">
+                        Edit Product
+                    </a>
+                }
             </div>
         </div>
 
         <!-- Modal for each product -->
-        <div class="modal fade" id="productModal-@product.ProductId" tabindex="-1" role="dialog" aria-labelledby="productModalLabel-@product.ProductId" data-product-id="@product.ProductId" aria-hidden="true">
+        <div class="modal fade"
+             id="productModal-@product.ProductId"
+             tabindex="-1"
+             role="dialog"
+             aria-labelledby="productModalLabel-@product.ProductId"
+             data-product-id="@product.ProductId"
+             aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <form method="post" asp-action="AddProductToBasket">
                         <div class="modal-header">
                             <h5 class="modal-title" id="productModalLabel-@product.ProductId">@product.ProductName</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <input type="hidden" id="productId" name="ProductToAdd.ProductId" value="@product.ProductId" />
-                            <input type="hidden" id="basketId" name="Basket.Identifier" value="@Model.Basket.Identifier" />
+                            <!-- Hidden Inputs -->
+                            <input type="hidden" name="ProductToAdd.ProductId" value="@product.ProductId" />
 
+                            <!-- Select Addons -->
                             <h6>Select Addons:</h6>
-                            @foreach (var addon in product.AvailableAddons)
+                            @if (product.AvailableAddons != null && product.AvailableAddons.Any())
+
                             {
-                                <div>
-                                    <input type="checkbox"
-                                           name="SelectedAddons"
-                                           value="@addon.Identifier"
-                                           id="addon-@addon.Identifier"
-                                           data-addon-price="@addon.Price"
-                                           class="addon-checkbox" />
-                                    <label for="addon-@addon.Identifier">@addon.Name (€@addon.Price)</label>
-                                </div>
+                                @foreach (var addon in product.AvailableAddons)
+
+                                {
+                                    <div class="form-check">
+                                        <input type="checkbox"
+                                               class="form-check-input addon-checkbox"
+                                               name="SelectedAddons"
+                                               value="@addon.Identifier"
+                                               id="addon-@addon.Identifier"
+                                               data-addon-price="@addon.Price" />
+                                        <label class="form-check-label" for="addon-@addon.Identifier">
+                                            @addon.Name (€@addon.Price)
+                                        </label>
+                                    </div>
+                                }
                             }
 
+                            else
+
+                            {
+                                <p>No addons available for this product.</p>
+                            }
+
+                            <!-- Quantity Input -->
                             <label for="ProductCount">Quantity:</label>
                             <input type="number"
                                    id="ProductCount"
@@ -62,8 +90,8 @@
                         </div>
                         <div class="modal-footer">
                             <h5>
-                                €<span id="productPrice-@product.ProductId"
-                                       data-base-price="@product.ProductPrice.ToString("F2")">
+                                Total Price: €<span id="productPrice-@product.ProductId"
+                                                    data-base-price="@product.ProductPrice.ToString("F2")">
                                     @product.ProductPrice.ToString("F2")
                                 </span>
                             </h5>
