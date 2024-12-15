@@ -5,22 +5,23 @@ namespace PatatZaak.Models.Viewmodels
     public class ConfirmationVM
     {
         public int OrderNumber { get; set; }
-        public int PickupNumber { get; set; }  // Maak dit een int i.p.v. string
-        public string PickupTime { get; set; } // PickupTime als string blijft oké
+       
+        public DateTime PickupTime { get; set; }
         public decimal TotalPrice { get; set; }
-        public IEnumerable<ProductVM> Products { get; set; }
+        public List<ProductVM> Products { get; set; }
 
+        public int GeneratePickupNumber()
+        {
+            // Generate a unique numeric pickup number (for example, using DateTime ticks)
+            return DateTime.Now.Ticks.GetHashCode(); // Use the hash code of the ticks as an integer
+        }
+        public int PickupNumber { get; set; }
         public void GeneratePickupTime(DateTime orderTime)
         {
-            PickupTime = orderTime.AddMinutes(20).ToString("HH:mm"); // Correcte conversie
-        }
-
-        public void GeneratePickupNumber()
-        {
-            var random = new Random();
-            PickupNumber = random.Next(1000, 9999); // Gebruik int i.p.v. string
+            PickupTime = orderTime.AddMinutes(30);  // Adjust as needed, for example, set pickup time 30 mins later
         }
     }
+
     public class ProductVM
     {
         public string ProductName { get; set; }
