@@ -204,39 +204,38 @@ namespace PatatZaak.Controllers
         // GET: Orders/AddToCart/5
         public IActionResult AddToCart(int productId, int quantity)
         {
-            // Get the user ID from User.Identity.Name (assuming it returns the user ID as a string)
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);  // Correct way to get the user ID in ASP.NET Core Identity
+            var userIdString = User.Identity.Name; // Get the current user ID (assuming it's a string)
             int userId;
 
-            // Try to parse the string to an integer
             if (int.TryParse(userIdString, out userId))
             {
+                // Find or create an order (cart)
                 var order = _context.Order.Include(o => o.Products)
-                                   .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);  // In Progress status
+                    .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);  // In Progress order
 
                 if (order == null)
                 {
-                    // Create a new order if no active order exists
                     order = new Order
                     {
                         UserId = userId,
-                        OrderStatus = 0,  // Should remain an integer
-                        Products = new List<Product>()  // Correct type for products in the order
+                        OrderStatus = 0,  // Order status 'In Progress'
+                        Products = new List<Product>()
                     };
-                    _context.Order.Add(order);
-                    _context.SaveChanges();  // Save new order to database
+                    _context.Order.Add(order); // Add the order if it doesn't exist
+                    _context.SaveChanges(); // Save to DB
                 }
 
-                var product = _context.Product.Find(productId);
+                var product = _context.Product.Find(productId); // Get the product
                 if (product == null)
                 {
                     return NotFound();
                 }
 
+                // Check if the product already exists in the cart, and update quantity if it does
                 var existingProduct = order.Products.FirstOrDefault(p => p.ProductId == productId);
                 if (existingProduct != null)
                 {
-                    existingProduct.ProductQuantity += quantity;  // Increase quantity
+                    existingProduct.ProductQuantity += quantity; // Add the quantity
                 }
                 else
                 {
@@ -249,14 +248,12 @@ namespace PatatZaak.Controllers
                     });
                 }
 
-                _context.SaveChanges();  // Save changes to the database
+                _context.SaveChanges(); // Save changes to the cart (order)
 
-                return RedirectToAction("Cart", new { orderId = order.OrderId });
+                return Json(new { success = true, message = "Item added to cart" });
             }
-            else
-            {
-                return NotFound("Invalid User ID");
-            }
+
+            return Json(new { success = false, message = "Invalid user ID" });
         }
 
         // GET: Orders/Cart/5
@@ -319,26 +316,45 @@ namespace PatatZaak.Controllers
 
         // POST: Orders/RemoveFromCart
         [HttpPost]
-        public IActionResult RemoveFromCart(int orderId, int productId)
+        public IActionResult RemoveFromCart(int productId, int quantity)
         {
-            var order = _context.Order.Include(o => o.Products)
-                                      .FirstOrDefault(o => o.OrderId == orderId);
+            var userIdString = User.Identity.Name;
+            int userId;
 
-            if (order == null)
+            if (int.TryParse(userIdString, out userId))
             {
-                return NotFound();
+                // Find the order (cart)
+                var order = _context.Order.Include(o => o.Products)
+                    .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);
+
+                if (order == null)
+                {
+                    return NotFound();
+                }
+
+                // Find the product in the cart
+                var existingProduct = order.Products.FirstOrDefault(p => p.ProductId == productId);
+                if (existingProduct != null)
+                {
+                    if (existingProduct.ProductQuantity > quantity)
+                    {
+                        existingProduct.ProductQuantity -= quantity; // Decrease the quantity
+                    }
+                    else
+                    {
+                        order.Products.Remove(existingProduct); // Remove from cart if quantity is 0
+                    }
+
+                    _context.SaveChanges(); // Save changes
+                    return Json(new { success = true, message = "Item removed from cart" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Item not found in cart" });
+                }
             }
 
-            var product = order.Products.FirstOrDefault(p => p.ProductId == productId);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            order.Products.Remove(product);
-            _context.SaveChanges();  // Save changes to the database
-
-            return RedirectToAction("Cart", new { orderId = orderId });
+            return Json(new { success = false, message = "Invalid user ID" });
         }
 
         // POST: Orders/Checkout/5

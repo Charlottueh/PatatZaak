@@ -1,65 +1,55 @@
-﻿@model IEnumerable<PatatZaak.Models.Businesslayer.Product>
+﻿@model List<ProductViewModel>
 
-@{
-    ViewData["Title"] = "Index";
+<div class="product-list">
+    @foreach (var product in Model)
+    {
+        <div class="product-item">
+            <!-- Ensure correct Razor syntax for src -->
+            <img src="@(!string.IsNullOrEmpty(product.Photopath) ? product.Photopath : "/images/default.jpg")" alt="@product.ProductName" class="product-image" />
+            
+            <div class="product-details">
+                <h3>@product.ProductName</h3>
+                <p>Price: @product.ProductPrice.ToString("C")</p>
+                <div class="quantity-control">
+                    <button class="btn btn-danger" onclick="removeFromCart(@product.ProductId)">
+                        -
+                    </button>
+                    <span>@product.QuantityInCart</span>
+                    <button class="btn btn-success" onclick="addToCart(@product.ProductId)">
+                        +
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+function addToCart(productId) {
+    $.ajax({
+        url: '/Product/AddToCart',
+        type: 'POST',
+        data: { productId: productId, quantity: 1 },
+        success: function (response) {
+            // Handle the response (for example, logging it)
+            console.log(response); // Log the response to the console (or use it in the UI)
+
+            // Optionally, reload the page
+            location.reload();
+        }
+    });
 }
 
-<h1>Index</h1>
+function removeFromCart(productId) {
+    $.ajax({
+        url: '/Product/RemoveFromCart',
+        type: 'POST',
+        data: { productId: productId, quantity: 1 },
+        success: function (response) {
+            // Handle the response (for example, logging it)
+            console.log(response); // Log the response to the console (or use it in the UI)
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ProductName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ProductCat)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ProductDescription)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ProductPoints)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ProductDiscount)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProductName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProductCat)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProductDescription)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProductPoints)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ProductDiscount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Photopath)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Order.OrderId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ProductId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ProductId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ProductId">Delete</a>
-            </td>
-        </tr>
+            // Optionally, reload the page
+            location.reload();
+        }
+    });
 }
-    </tbody>
-</table>
