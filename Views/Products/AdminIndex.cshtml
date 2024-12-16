@@ -17,8 +17,8 @@
                 <td>@product.ProductName</td>
                 <td>€@product.ProductPrice.ToString("F2")</td>
                 <td>
-                    <a href="@Url.Action("Edit", "Product", new { id = product.ProductId })" class="btn btn-warning">Edit</a>
-                    <a href="@Url.Action("Delete", "Product", new { id = product.ProductId })" class="btn btn-danger">Delete</a>
+                    <a href="@Url.Action("Edit", "Products", new { id = product.ProductId })" class="btn btn-warning">Edit</a>
+                    <a href="@Url.Action("Delete", "Products", new { id = product.ProductId })" class="btn btn-danger">Delete</a>
                 </td>
             </tr>
         }
