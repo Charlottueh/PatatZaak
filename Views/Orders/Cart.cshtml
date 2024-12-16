@@ -41,8 +41,8 @@
             <span>€@Model.TotalPrice.ToString("F2")</span>
         </div>
         <div class="checkout--footer">
-            <form asp-action="Checkout" asp-controller="Cart" method="post">
-                <button type="submit" class="checkout-btn">Checkout</button>
+            <form method="post" asp-action="Confirmation" asp-controller="Orders">
+                <button type="submit">Checkout</button>
             </form>
         </div>
     </div>

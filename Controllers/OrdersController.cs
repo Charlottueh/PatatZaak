@@ -139,33 +139,54 @@ namespace PatatZaak.Controllers
         }
 
         // GET: Orders/Confirmation/5
-        public IActionResult Confirmation(int id)
+        public IActionResult Confirmation()
         {
-            var order = _context.Order
-                .Include(o => o.Products)
-                .FirstOrDefault(o => o.OrderId == id);
-
-            if (order == null)
+            // Get the current user ID
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
             {
-                return NotFound("Order not found");
+                return RedirectToAction("Login", "Account");
             }
 
+            // Fetch the user's uncompleted order (status 0 means uncompleted)
+            var order = _context.Order
+                .Include(o => o.Products)
+                .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);
+
+            if (order == null || order.Products == null || !order.Products.Any())
+            {
+                return RedirectToAction("Index", "Home"); // Redirect if no order is found
+            }
+
+            // Mark the order as completed (status 1 means completed)
+            order.OrderStatus = 1; // Assuming 1 means completed
+            _context.SaveChanges();
+
+            // Create the view model for confirmation
             var viewModel = new ConfirmationVM
             {
-                OrderNumber = order.Ordernumber,  // Keep as integer
-                TotalPrice = order.TotalPrice,
+                OrderNumber = order.Ordernumber,  // Order number
+                TotalPrice = order.TotalPrice,    // Total price of the order
                 Products = order.Products.Select(p => new ProductVM
                 {
                     ProductName = p.ProductName,
                     ProductPrice = p.ProductPrice,
                     ProductQuantity = p.ProductQuantity
-                }).ToList()
+                }).ToList(),
+                PickupNumber = GeneratePickupNumber()  // Generate the pickup number
             };
 
-            viewModel.GeneratePickupNumber();  // Generate the pickup number
-            viewModel.GeneratePickupTime(order.PickupTime);  // Set pickup time
+            // Generate pickup time (30 minutes after the order's pickup time)
+            viewModel.GeneratePickupTime(order.PickupTime);
 
+            // Return the confirmation view
             return View(viewModel);
+        }
+
+        // Helper method to generate a pickup number (unique)
+        private int GeneratePickupNumber()
+        {
+            return DateTime.Now.Ticks.GetHashCode(); // Unique pickup number using DateTime ticks
         }
 
         // POST: Orders/UpdateStatus/5
@@ -365,35 +386,30 @@ namespace PatatZaak.Controllers
 
         // POST: Orders/Checkout/5
         [HttpPost]
-        public IActionResult Checkout(int id)
+        public IActionResult Checkout()
         {
-            var order = _context.Order
-                .Include(o => o.Products)
-                .FirstOrDefault(o => o.OrderId == id);
-
-            if (order == null)
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
             {
-                return NotFound("Order not found");
+                return RedirectToAction("Login", "Account");
             }
 
-            var viewModel = new ConfirmationVM
+            // Fetch the order associated with the user and status 0 (uncompleted orders)
+            var order = _context.Order
+                .Include(o => o.Products)
+                .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);
+
+            if (order == null || order.Products == null || !order.Products.Any())
             {
-                OrderNumber = order.Ordernumber,
-                TotalPrice = order.TotalPrice,
-                Products = order.Products.Select(p => new ProductVM
-                {
-                    ProductName = p.ProductName,
-                    ProductPrice = p.ProductPrice,
-                    ProductQuantity = p.ProductQuantity
-                }).ToList()
-            };
+                return RedirectToAction("Index", "Home");  // Redirect if no order is found
+            }
 
-            // Generate a valid integer pickup number
-            viewModel.PickupNumber = viewModel.GeneratePickupNumber();  // This will now return an int
+            // Mark the order as completed (you can also adjust the status here)
+            order.OrderStatus = 1;  // Assuming 1 means completed
+            _context.SaveChanges();
 
-            viewModel.GeneratePickupTime(order.PickupTime);  // Set pickup time
-
-            return View(viewModel);
+            // Redirect to the Confirmation page, passing the order id
+            return RedirectToAction("Confirmation", new { id = order.OrderId });
         }
     }
 
