@@ -28,6 +28,18 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">Menu</a>
                         </li>
+                        @if (User.IsInRole("admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Dashboard">Dashboard</a>
+                            </li>
+                        }
+                        @if (User.IsInRole("worker"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="WorkerDashboard">Dashboard</a>
+                            </li>
+                        }
                         @if (User.Identity.IsAuthenticated)
                         {
                             <li class ="nav-item">

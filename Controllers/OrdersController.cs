@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Speech.Synthesis;
+using static NuGet.Packaging.PackagingConstants;
 
 
 namespace PatatZaak.Controllers
@@ -219,9 +220,9 @@ namespace PatatZaak.Controllers
 
             GenerateSpeech(order.OrderId);  // Call to generate speech
 
-            // Redirect to the confirmation page with the updated order details
-            return RedirectToAction("Confirmation", new { id = order.OrderId });
-           
+            
+            return RedirectToAction("Index", "Orders");
+
         }
 
         [Authorize]
@@ -427,7 +428,7 @@ namespace PatatZaak.Controllers
             speech.Rate = 0; // Set speech rate (-10 to 10, 0 is normal speed)
 
             // Prepare the message to be spoken
-            var message = $"De bestelling met ophaalnummer {order.PickupNumber} is klaar voor afhalen.";
+            var message = $"The order {order.OrderId} is ready for pickup.";
             // Make sure the speech has finished speaking and the file has been written
             speech.Speak(message); // This will generate the WAV file
 
