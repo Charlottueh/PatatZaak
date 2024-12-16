@@ -13,34 +13,37 @@
             <th>Status</th>
             <th>Ophaalnummer</th>
             <th>Acties</th>
+            <th>Bestelde Producten</th> <!-- Nieuwe kolom voor de bestelde producten -->
         </tr>
     </thead>
     <tbody>
         @foreach (var order in Model)
-
         {
             <tr>
                 <td>@order.Ordernumber</td>
                 <td>
                     @switch (order.OrderStatus)
                     {
-
                         case 0:
-                            <text>Besteld</text>
-                            ; break;
-
+                            <text>Besteld</text>  <!-- Order Status 0: Besteld -->
+                            break;
                         case 1:
-                            <text>In Process</text>
-                            ; break;
-
+                            <text>Bevestigd</text>  <!-- Order Status 1: Bevestigd -->
+                            break;
                         case 2:
-                            <text>Afgerond</text>
-                            ; break;
+                            <text>Klaar voor ophalen</text>  <!-- Order Status 2: Klaar voor ophalen -->
+                            break;
+                        case 3:
+                            <text>Voltooid</text>  <!-- Order Status 3: Voltooid -->
+                            break;
+                        default:
+                            <text>Onbekend</text>  <!-- If status is not recognized -->
+                            break;
                     }
                 </td>
                 <td>@order.PickupNumber</td>
                 <td>
-                    @if (order.OrderStatus < 2)
+                    @if (order.OrderStatus < 2)  
                     {
                         <form asp-action="UpdateStatus" asp-route-id="@order.OrderId" method="post">
                             <button type="submit" class="btn btn-primary">
@@ -50,8 +53,16 @@
                     }
                     else
                     {
-                        <span>Voltooid</span>
+                        <span>Voltooid</span>  <!-- If status is 2 or 3, show Voltooid (Completed) -->
                     }
+                </td>
+                <td>
+                    <ul>
+                        @foreach (var product in order.Products)
+                        {
+                            <li>@product.ProductName - @product.ProductQuantity x €@product.ProductPrice</li>  <!-- Product details -->
+                        }
+                    </ul>
                 </td>
             </tr>
         }

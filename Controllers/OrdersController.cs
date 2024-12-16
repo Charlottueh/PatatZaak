@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Speech.Synthesis;
+
 
 namespace PatatZaak.Controllers
 {
@@ -189,7 +191,7 @@ namespace PatatZaak.Controllers
             return DateTime.Now.Ticks.GetHashCode(); // Unique pickup number using DateTime ticks
         }
 
-        // POST: Orders/UpdateStatus/5
+        // POST: Orders/UpdateStatus/
         [HttpPost]
         public IActionResult UpdateStatus(int id)
         {
@@ -199,12 +201,7 @@ namespace PatatZaak.Controllers
                 return NotFound();
             }
 
-            // Assuming OrderStatus is an integer where:
-            // 0 = In Progress, 
-            // 1 = Confirmed, 
-            // 2 = Ready for Pickup,
-            // 3 = Completed
-
+            // Update the status based on the current status
             if (order.OrderStatus == 0)  // In Progress
             {
                 order.OrderStatus = 1;  // Confirmed
@@ -220,7 +217,11 @@ namespace PatatZaak.Controllers
 
             _context.SaveChanges();
 
-            return RedirectToAction(nameof(Index));
+            GenerateSpeech(order.OrderId);  // Call to generate speech
+
+            // Redirect to the confirmation page with the updated order details
+            return RedirectToAction("Confirmation", new { id = order.OrderId });
+           
         }
 
         [Authorize]
@@ -411,6 +412,26 @@ namespace PatatZaak.Controllers
             // Redirect to the Confirmation page, passing the order id
             return RedirectToAction("Confirmation", new { id = order.OrderId });
         }
-    }
 
+        // Method to generate speech and return it as an audio file
+        public void GenerateSpeech(int orderId)
+        {
+            var order = _context.Order.Find(orderId);
+
+            // Initialize the speech synthesizer
+            var speech = new SpeechSynthesizer();
+
+            // Set the voice to "Microsoft David Desktop" or your preferred voice
+            speech.SelectVoice("Microsoft David Desktop"); // Change to the desired voice
+            speech.Volume = 100; // Set volume level (0-100)
+            speech.Rate = 0; // Set speech rate (-10 to 10, 0 is normal speed)
+
+            // Prepare the message to be spoken
+            var message = $"De bestelling met ophaalnummer {order.PickupNumber} is klaar voor afhalen.";
+            // Make sure the speech has finished speaking and the file has been written
+            speech.Speak(message); // This will generate the WAV file
+
+        }
+    }
 }
+
