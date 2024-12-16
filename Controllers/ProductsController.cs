@@ -157,7 +157,7 @@ namespace PatatZaak.Controllers
         // POST: Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductId,ProductName,ProductCat,ProductDescription,ProductPoints,ProductDiscount,Photopath,ProductPrice,ProductQuantity,OrderId")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductId,ProductName,ProductCat,ProductDescription,ProductPoints,ProductDiscount,Photopath,ProductPrice,ProductQuantity")] Product product, IFormFile Photo)
         {
             if (id != product.ProductId)
             {
