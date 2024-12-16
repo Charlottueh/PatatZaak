@@ -249,46 +249,93 @@ body {
 
 .form-control {
     position: relative;
-    margin: 20px 0 40px;
-    width: 190px;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 400px; /* Max width to ensure the form doesn't stretch too much */
+    margin-left: auto;
+    margin-right: auto; /* Centers the form */
+    padding: 10px; /* Optional padding around the form control */
 }
 
     .form-control input {
         background-color: transparent;
         border: 0;
-        border-bottom: 2px #fff solid;
+        border-bottom: 2px solid #333; /* Dark border for the input */
         display: block;
-        width: 100%;
-        padding: 15px 0;
-        font-size: 18px;
-        color: #fff;
+        width: 100%; /* Ensure input takes full width */
+        padding: 12px 0;
+        font-size: 16px;
+        color: black;
+        transition: border-bottom-color 0.3s ease-in-out;
     }
 
         .form-control input:focus,
         .form-control input:valid {
-            outline: 0;
-            border-bottom-color: lightblue;
+            outline: none;
+            border-bottom-color: #007bff; /* Change border to blue on focus */
         }
 
     .form-control label {
         position: absolute;
-        top: 15px;
+        top: 12px;
         left: 0;
+        font-size: 16px;
+        color: #333; /* Darker label color */
         pointer-events: none;
+        transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
-        .form-control label span {
-            display: inline-block;
-            font-size: 18px;
-            min-width: 5px;
-            color: #fff;
-            transition: 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
+    /* Label moves up when input is focused or has value */
+    .form-control input:focus + label,
+    .form-control input:valid + label {
+        color: #007bff;
+        transform: translateY(-25px);
+    }
+
+    /* For individual letter effects in label */
+    .form-control label span {
+        display: inline-block;
+        font-size: 16px;
+        color: #333;
+        transition: color 0.3s ease-in-out, transform 0.3s ease-in-out;
+    }
 
     .form-control input:focus + label span,
     .form-control input:valid + label span {
-        color: lightblue;
-        transform: translateY(-30px);
+        color: #007bff;
+        transform: translateY(-25px);
+    }
+
+.text-danger {
+    font-size: 12px; /* Error text smaller */
+    color: red;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Styling for radio buttons */
+.radio-group {
+    display: flex;
+    gap: 15px; /* Add space between radio buttons */
+    margin-top: 10px;
+}
+
+    .radio-group label {
+        display: flex;
+        align-items: center;
+        font-size: 16px;
+        color: #333; /* Dark text for radio button labels */
+    }
+
+    .radio-group input[type="radio"] {
+        margin-right: 5px; /* Space between radio button and label */
+    }
+
+    /* Optional: Styling for the radio button container */
+    .radio-group div {
+        margin-top: 10px;
     }
 
 /* General Product List Styling */

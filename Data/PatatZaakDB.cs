@@ -80,8 +80,8 @@ namespace PatatZaak.Data
                 .IsRequired();
 
             modelBuilder.Entity<Product>()
-                .Property(p => p.OrderId)
-                .IsRequired();
+                .Property(p => p.OrderId);
+              
 
 
             modelBuilder.Entity<Product>()

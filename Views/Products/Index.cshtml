@@ -43,60 +43,27 @@
              aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
-                    <form method="post" asp-action="AddProductToBasket">
+                    <form method="post" asp-action="AddToCart" asp-controller="Orders">
                         <div class="modal-header">
                             <h5 class="modal-title" id="productModalLabel-@product.ProductId">@product.ProductName</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <!-- Hidden Inputs -->
-                            <input type="hidden" name="ProductToAdd.ProductId" value="@product.ProductId" />
-
-                            <!-- Select Addons -->
-                            <h6>Select Addons:</h6>
-                            @if (product.AvailableAddons != null && product.AvailableAddons.Any())
-
-                            {
-                                @foreach (var addon in product.AvailableAddons)
-
-                                {
-                                    <div class="form-check">
-                                        <input type="checkbox"
-                                               class="form-check-input addon-checkbox"
-                                               name="SelectedAddons"
-                                               value="@addon.Identifier"
-                                               id="addon-@addon.Identifier"
-                                               data-addon-price="@addon.Price" />
-                                        <label class="form-check-label" for="addon-@addon.Identifier">
-                                            @addon.Name (€@addon.Price)
-                                        </label>
-                                    </div>
-                                }
-                            }
-
-                            else
-
-                            {
-                                <p>No addons available for this product.</p>
-                            }
+                            <!-- Hidden Input for ProductId -->
+                            <input type="hidden" name="productId" value="@product.ProductId" />
 
                             <!-- Quantity Input -->
                             <label for="ProductCount">Quantity:</label>
-                            <input type="number"
-                                   id="ProductCount"
-                                   name="ProductToAdd.Count"
-                                   class="form-control"
-                                   value="1" min="1" />
+                            <input type="number" id="ProductCount" name="quantity" class="form-control" value="1" min="1" />
                         </div>
                         <div class="modal-footer">
                             <h5>
-                                Total Price: €<span id="productPrice-@product.ProductId"
-                                                    data-base-price="@product.ProductPrice.ToString("F2")">
+                                Total Price: €<span id="productPrice-@product.ProductId" data-base-price="@product.ProductPrice.ToString("F2")">
                                     @product.ProductPrice.ToString("F2")
                                 </span>
                             </h5>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Add to Basket</button>
+                            <button type="submit" class="btn btn-primary">Add to Cart</button>
                         </div>
                     </form>
                 </div>

@@ -10,138 +10,68 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" enctype="multipart/form-data">>
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <!-- ProductName -->
-            <div class="form-control">
-                <input asp-for="ProductName" required="" />
-                <label for="ProductName">
-                    <span style="transition-delay:0ms">P</span>
-                    <span style="transition-delay:50ms">r</span>
-                    <span style="transition-delay:100ms">o</span>
-                    <span style="transition-delay:150ms">d</span>
-                    <span style="transition-delay:200ms">u</span>
-                    <span style="transition-delay:250ms">c</span>
-                    <span style="transition-delay:300ms">t</span>
-                    <span style="transition-delay:350ms"></span>
-                    <span style="transition-delay:400ms">n</span>
-                    <span style="transition-delay:450ms">a</span>
-                    <span style="transition-delay:500ms">a</span>
-                    <span style="transition-delay:550ms">m</span>
-                </label>
+            <div class="form-group">
+                <label for="ProductName">Product Name</label>
+                <input asp-for="ProductName" class="form-control" required />
                 <span asp-validation-for="ProductName" class="text-danger"></span>
             </div>
 
             <!-- ProductPrice -->
-            <div class="form-control">
-                <input asp-for="ProductPrice" required="" />
-                <label for="ProductPrice">
-                    <span style="transition-delay:0ms">P</span>
-                    <span style="transition-delay:50ms">r</span>
-                    <span style="transition-delay:100ms">i</span>
-                    <span style="transition-delay:150ms">j</span>
-                    <span style="transition-delay:200ms">s</span>
-                </label>
-                <span asp-validation-for="ProductCat" class="text-danger"></span>
+            <div class="form-group">
+                <label for="ProductPrice">Price</label>
+                <input asp-for="ProductPrice" class="form-control" required />
+                <span asp-validation-for="ProductPrice" class="text-danger"></span>
             </div>
 
             <!-- ProductCat -->
-            <div class="form-control">
-                <input asp-for="ProductCat" required="" />
-                <label for="ProductCat">
-                    <span style="transition-delay:0ms">C</span>
-                    <span style="transition-delay:50ms">a</span>
-                    <span style="transition-delay:100ms">t</span>
-                    <span style="transition-delay:150ms">e</span>
-                    <span style="transition-delay:200ms">g</span>
-                    <span style="transition-delay:250ms">o</span>
-                    <span style="transition-delay:300ms">r</span>
-                    <span style="transition-delay:350ms">i</span>
-                    <span style="transition-delay:400ms">e</span>
-
-                </label>
+            <div class="form-group">
+                <label for="ProductCat">Category</label>
+                <input asp-for="ProductCat" class="form-control" required />
                 <span asp-validation-for="ProductCat" class="text-danger"></span>
             </div>
 
             <!-- ProductDescription -->
-            <div class="form-control">
-                <input asp-for="ProductDescription" required="" />
-                <label for="ProductDescription">
-                    <span style="transition-delay:0ms">D</span>
-                    <span style="transition-delay:50ms">e</span>
-                    <span style="transition-delay:100ms">s</span>
-                    <span style="transition-delay:150ms">c</span>
-                    <span style="transition-delay:200ms">r</span>
-                    <span style="transition-delay:25ms">i</span>
-                    <span style="transition-delay:300ms">p</span>
-                    <span style="transition-delay:350ms">t</span>
-                    <span style="transition-delay:400ms">i</span>
-                    <span style="transition-delay:450ms">o</span>
-                    <span style="transition-delay:500ms">n</span>
-                </label>
+            <div class="form-group">
+                <label for="ProductDescription">Description</label>
+                <input asp-for="ProductDescription" class="form-control" required />
                 <span asp-validation-for="ProductDescription" class="text-danger"></span>
             </div>
 
             <!-- ProductPoints -->
-            <div class="form-control">
-                <input asp-for="ProductPoints" required="" />
-                <label for="ProductPoints">
-                    <span style="transition-delay:0ms">R</span>
-                    <span style="transition-delay:50ms">e</span>
-                    <span style="transition-delay:100ms">w</span>
-                    <span style="transition-delay:150ms">a</span>
-                    <span style="transition-delay:200ms">r</span>
-                    <span style="transition-delay:250ms">d</span>
-                    <span style="transition-delay:300ms"></span>
-                    <span style="transition-delay:350ms">p</span>
-                    <span style="transition-delay:400ms">o</span>
-                    <span style="transition-delay:450ms">i</span>
-                    <span style="transition-delay:500ms">n</span>
-                    <span style="transition-delay:550ms">t</span>
-                    <span style="transition-delay:600ms">s</span>
-                </label>
+            <div class="form-group">
+                <label for="ProductPoints">Reward Points</label>
+                <input asp-for="ProductPoints" class="form-control" required />
                 <span asp-validation-for="ProductPoints" class="text-danger"></span>
             </div>
 
             <!-- ProductQuantity -->
-            <div class="form-control">
-                <input asp-for="ProductQuantity" required="" />
-                <label for="ProductPoints">
-                    <span style="transition-delay:0ms">H</span>
-                    <span style="transition-delay:50ms">o</span>
-                    <span style="transition-delay:100ms">e</span>
-                    <span style="transition-delay:150ms">v</span>
-                    <span style="transition-delay:200ms">e</span>
-                    <span style="transition-delay:250ms">e</span>
-                    <span style="transition-delay:300ms">l</span>
-                    <span style="transition-delay:350ms">h</span>
-                    <span style="transition-delay:400ms">e</span>
-                    <span style="transition-delay:450ms">i</span>
-                    <span style="transition-delay:500ms">d</span>
-                </label>
-                <span asp-validation-for="ProductPoints" class="text-danger"></span>
+            <div class="form-group">
+                <label for="ProductQuantity">Quantity</label>
+                <input asp-for="ProductQuantity" class="form-control" required />
+                <span asp-validation-for="ProductQuantity" class="text-danger"></span>
             </div>
 
             <!-- ProductDiscount -->
-            <div class="form-control">
-                <input asp-for="ProductDiscount" required="" />
-                <label for="ProductDiscount">
-                    <span style="transition-delay:0ms">D</span>
-                    <span style="transition-delay:50ms">i</span>
-                    <span style="transition-delay:100ms">s</span>
-                    <span style="transition-delay:150ms">c</span>
-                    <span style="transition-delay:200ms">o</span>
-                    <span style="transition-delay:250ms">u</span>
-                    <span style="transition-delay:300ms">n</span>
-                    <span style="transition-delay:350ms">t</span>
-                </label>
+            <div class="form-group">
+                <label>Discount Available</label>
+                <div>
+                    <label>
+                        <input asp-for="ProductDiscount" type="radio" value="true" /> Yes
+                    </label>
+                    <label>
+                        <input asp-for="ProductDiscount" type="radio" value="false" /> No
+                    </label>
+                </div>
                 <span asp-validation-for="ProductDiscount" class="text-danger"></span>
             </div>
 
             <!-- Photopath -->
             <div class="form-group">
-                <label>Foto</label>
+                <label for="Photo">foto</label>
                 <input type="file" name="Photo" class="form-control" />
             </div>
 
@@ -157,5 +87,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

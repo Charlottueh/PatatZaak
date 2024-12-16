@@ -45,10 +45,8 @@ namespace PatatZaak.Controllers
         [AllowAnonymous]
         public IActionResult Index()
         {
-            // Haal de producten op
             var products = _context.Product.Include(p => p.AvailableAddons).ToList();
 
-            // Maak een lijst van ProductViewModels
             var productViewModels = products.Select(p => new ProductViewModel
             {
                 ProductId = p.ProductId,
@@ -56,12 +54,10 @@ namespace PatatZaak.Controllers
                 ProductPrice = p.ProductPrice,
                 ProductQuantity = p.ProductQuantity,
                 Photopath = p.Photopath,
-                // Voeg hier je logica toe voor QuantityInCart en AvailableAddons
-                QuantityInCart = 0,  // Stel in op 0 voor het voorbeeld
+                QuantityInCart = 0, // Placeholder logic
                 AvailableAddons = p.AvailableAddons.ToList()
             }).ToList();
 
-            // Geef de lijst van ProductViewModels door naar de view
             return View(productViewModels);
         }
 
@@ -94,35 +90,48 @@ namespace PatatZaak.Controllers
         // POST: Products/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProductId,ProductName,ProductCat,ProductDescription,ProductPoints,ProductDiscount,Photopath,ProductPrice,ProductQuantity,OrderId")] Product product)
+        public async Task<IActionResult> Create([Bind("ProductId,ProductName,ProductCat,ProductDescription,ProductPoints,ProductDiscount,ProductPrice,ProductQuantity")] Product product, IFormFile Photo)
         {
             if (ModelState.IsValid)
             {
-                // Handle image upload if a file is selected
+                // Add logging or debugging here to ensure data is correct
+                Console.WriteLine($"Product Name: {product.ProductName}");
+                Console.WriteLine($"Product Price: {product.ProductPrice}");
+                Console.WriteLine($"Product Quantity: {product.ProductQuantity}");
+
                 if (Photo != null && Photo.Length > 0)
                 {
+
                     var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
                     if (!Directory.Exists(uploadsFolder))
                     {
                         Directory.CreateDirectory(uploadsFolder);
                     }
 
+
                     var fileName = Path.GetFileName(Photo.FileName);
+
+
                     var filePath = Path.Combine(uploadsFolder, fileName);
+
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await Photo.CopyToAsync(stream);
                     }
-
                     product.Photopath = "/images/" + fileName;
+
                 }
 
+                // Add the product to the context
                 _context.Add(product);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                await _context.SaveChangesAsync(); // Save changes to the database
+
+                // Redirect to the Index view
+                return RedirectToAction(nameof(Index)); // Redirect to Index
             }
 
+            // If not valid, return to the form with validation errors
             ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "Ordernumber", product.OrderId);
             return View(product);
         }

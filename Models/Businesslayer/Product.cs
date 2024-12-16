@@ -31,10 +31,10 @@ namespace PatatZaak.Models.Businesslayer
         public int ProductQuantity { get; set; }
 
 
-        [Required]
+       
         public int? OrderId { get; set; }
         public Order? Order { get; set; }
 
-        public ICollection<Addon> AvailableAddons { get; set; }
+        public ICollection<Addon>? AvailableAddons { get; set; }
     }
 }

@@ -1,0 +1,49 @@
+﻿@model PatatZaak.Models.Viewmodels.CartViewModel
+
+<div class="master-container">
+    <!-- Cart Section -->
+    <div class="card cart">
+        <label class="title">Your cart</label>
+        <div class="products">
+            @if (Model.Products != null && Model.Products.Any())
+            {
+                @foreach (var product in Model.Products)
+
+                {
+                    <div class="product">
+                        <!-- Product Details -->
+                        <div>
+                            <span>@product.ProductName</span>
+                            <p>Price: €@product.ProductPrice</p>
+                            <p>Quantity: @product.ProductQuantity</p>
+                        </div>
+                        <!-- Quantity Controls -->
+                        <div class="quantity">
+                            
+                        </div>
+                        <!-- Product Total Price -->
+                        <label class="price small">Subtotal: €@(product.ProductPrice * product.ProductQuantity)</label>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Your cart is empty.</p>
+            }
+        </div>
+    </div>
+
+    <!-- Total Price -->
+    <div class="card checkout">
+        <label class="title">Order Summary</label>
+        <div class="details">
+            <span>Total Price:</span>
+            <span>€@Model.TotalPrice.ToString("F2")</span>
+        </div>
+        <div class="checkout--footer">
+            <form asp-action="Checkout" asp-controller="Cart" method="post">
+                <button type="submit" class="checkout-btn">Checkout</button>
+            </form>
+        </div>
+    </div>
+</div>

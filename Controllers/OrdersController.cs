@@ -205,90 +205,87 @@ namespace PatatZaak.Controllers
         [Authorize]
         public async Task<IActionResult> AddToCart(int productId, int quantity)
         {
-            // Haal de UserId van de ingelogde gebruiker op
-            var userIdString = User.Identity.Name;
-            int userId;
-
-            // Controleer of de UserId een geldig geheel getal is
-            if (!int.TryParse(userIdString, out userId))
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
             {
                 return Json(new { success = false, message = "Ongeldige gebruiker" });
             }
 
-            // Zoek naar een bestaande order voor deze gebruiker (Winkelwagentje)
-            var order = await _context.Order.Include(o => o.Products)
-                .FirstOrDefaultAsync(o => o.OrderStatus == 0 && o.UserId == userId); // Zoek naar een order die 'In Progress' is
+            var order = await _context.Order
+                .Include(o => o.Products)
+                .FirstOrDefaultAsync(o => o.OrderStatus == 0 && o.UserId == userId);
 
             if (order == null)
             {
-                // Als er geen order bestaat, maak dan een nieuwe aan
                 order = new Order
                 {
                     UserId = userId,
-                    OrderStatus = 0,  // Status 0 = In Progress
+                    OrderStatus = 0,
                     Products = new List<Product>()
                 };
-                _context.Order.Add(order); // Voeg de nieuwe order toe aan de database
-                await _context.SaveChangesAsync(); // Sla op
+                _context.Order.Add(order);
+                await _context.SaveChangesAsync();
             }
 
-            // Zoek het product op basis van productId
-            var product = await _context.Product.FindAsync(productId);
+            var product = await _context.Product.FirstOrDefaultAsync(p => p.ProductId == productId);
             if (product == null)
             {
                 return Json(new { success = false, message = "Product niet gevonden" });
             }
 
-            // Controleer of het product al in de winkelwagentje staat
+            // Check if the product already exists in the cart
             var existingProduct = order.Products.FirstOrDefault(p => p.ProductId == productId);
             if (existingProduct != null)
             {
-                // Als het product al in de winkelwagentje staat, verhoog dan de hoeveelheid
                 existingProduct.ProductQuantity += quantity;
             }
             else
             {
-                // Als het product nog niet in de winkelwagentje staat, voeg het dan toe
-                order.Products.Add(new Product
-                {
-                    ProductId = productId,
-                    ProductQuantity = quantity,
-                    ProductPrice = product.ProductPrice,
-                    ProductName = product.ProductName
-                });
+                // Add only the reference to the product, not a new instance
+                order.Products.Add(product);
+
+                // Update the quantity directly
+                product.ProductQuantity = quantity;
             }
 
-            // Sla de wijzigingen op in de database
             await _context.SaveChangesAsync();
-
-            // Geef een succesbericht terug
-            return Json(new { success = true, message = "Product toegevoegd aan winkelwagentje" });
+            TempData["SuccessMessage"] = "Product succesvol toegevoegd aan de winkelwagen!";
+            return RedirectToAction("Cart"); // Toon direct de winkelwagen
         }
 
         // GET: Orders/Cart/5
-        public IActionResult Cart(int orderId)
+        public IActionResult Cart()
         {
-            var order = _context.Order.Include(o => o.Products)
-                                      .FirstOrDefault(o => o.OrderId == orderId);
-
-            if (order == null)
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
             {
-                return NotFound();
+                return RedirectToAction("Login", "Account");
             }
 
-            var viewModel = new CartViewModel
+            var order = _context.Order
+                .Include(o => o.Products)
+                .FirstOrDefault(o => o.OrderStatus == 0 && o.UserId == userId);
+
+            if (order == null || order.Products == null || !order.Products.Any())
             {
-                OrderId = order.OrderId,
-                TotalPrice = order.Products.Sum(p => p.ProductPrice * p.ProductQuantity),
-                Products = order.Products.Select(p => new CartProductViewModel
-                {
-                    ProductName = p.ProductName,
-                    ProductPrice = p.ProductPrice,
-                    ProductQuantity = p.ProductQuantity
-                }).ToList()
+                return View(new CartViewModel { Products = new List<CartProductViewModel>(), TotalPrice = 0 });
+            }
+
+            var products = order.Products.Select(p => new CartProductViewModel
+            {
+                ProductId = p.ProductId,
+                ProductName = p.ProductName,
+                ProductPrice = p.ProductPrice,
+                ProductQuantity = p.ProductQuantity
+            }).ToList();
+
+            var cart = new CartViewModel
+            {
+                Products = products,
+                TotalPrice = order.TotalPrice
             };
 
-            return View(viewModel);
+            return View(cart);
         }
 
         // POST: Orders/UpdateQuantity
