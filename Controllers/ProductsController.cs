@@ -136,7 +136,7 @@ namespace PatatZaak.Controllers
             return View(product);
         }
 
-        // GET: Products/Edit/5
+        // GET: Products/Edit/1
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -150,14 +150,15 @@ namespace PatatZaak.Controllers
                 return NotFound();
             }
 
+            // Zorg ervoor dat de juiste orderlijst wordt geladen voor de dropdown
             ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "Ordernumber", product.OrderId);
-            return View(product);
+            return View(product); // Toon de Edit view met het product
         }
 
         // POST: Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProductId,ProductName,ProductCat,ProductDescription,ProductPoints,ProductDiscount,Photopath,ProductPrice,ProductQuantity")] Product product, IFormFile Photo)
+        public async Task<IActionResult> Edit(int id, [Bind("ProductId,ProductName,ProductCat,ProductDescription,ProductPoints,ProductDiscount,ProductPrice,ProductQuantity,Photopath")] Product product, IFormFile Photo)
         {
             if (id != product.ProductId)
             {
@@ -168,8 +169,28 @@ namespace PatatZaak.Controllers
             {
                 try
                 {
-                    _context.Update(product);
-                    await _context.SaveChangesAsync();
+                    if (Photo != null && Photo.Length > 0)
+                    {
+                        // Verwerk de nieuwe foto zoals in de Create actie
+                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        var fileName = Path.GetFileName(Photo.FileName);
+                        var filePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await Photo.CopyToAsync(stream);
+                        }
+
+                        product.Photopath = "/images/" + fileName; // Update het pad van de foto
+                    }
+
+                    _context.Update(product); // Werk het product bij
+                    await _context.SaveChangesAsync(); // Sla de wijzigingen op in de database
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -182,11 +203,18 @@ namespace PatatZaak.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+
+                return RedirectToAction(nameof(Index)); // Redirect naar de lijst na succesvol bijwerken
             }
 
             ViewData["OrderId"] = new SelectList(_context.Order, "OrderId", "Ordernumber", product.OrderId);
-            return View(product);
+            return View(product); // Als ModelState niet geldig is, toon de Edit view opnieuw met fouten
+        }
+
+        // Hulp methode om te controleren of een product bestaat
+        private bool ProductExists(int id)
+        {
+            return _context.Product.Any(e => e.ProductId == id);
         }
 
         // GET: Products/Delete/5
@@ -198,14 +226,13 @@ namespace PatatZaak.Controllers
             }
 
             var product = await _context.Product
-                .Include(p => p.Order)
                 .FirstOrDefaultAsync(m => m.ProductId == id);
             if (product == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(product); // Toon de Delete bevestigingspagina
         }
 
         // POST: Products/Delete/5
@@ -216,11 +243,11 @@ namespace PatatZaak.Controllers
             var product = await _context.Product.FindAsync(id);
             if (product != null)
             {
-                _context.Product.Remove(product);
+                _context.Product.Remove(product); // Verwijder het product
+                await _context.SaveChangesAsync(); // Sla de wijziging op
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index)); // Redirect naar de Index na verwijdering
         }
 
         // POST: Products/AddProductToOrder
@@ -262,9 +289,6 @@ namespace PatatZaak.Controllers
             return RedirectToAction("Edit", "Orders", new { id = orderId });
         }
 
-        private bool ProductExists(int id)
-        {
-            return _context.Product.Any(e => e.ProductId == id);
-        }
+       
     }
 }
